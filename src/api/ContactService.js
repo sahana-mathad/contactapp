@@ -26,14 +26,7 @@ const headers = {
 
 
 export async function updatePhoto(formData) {
-    return await axios.put(`${API_URL}/photo`, formData,{
-		headers: {
-								accept: 'application/json',
-								'Accept-Language': 'en-US,en;q=0.8',
-								'Content-Type': `multipart/form-data}`
-							}
-		
-});
+    return await axios.put(`${API_URL}/photo`, formData);
 }
 
 export async function deleteContact(id) {
