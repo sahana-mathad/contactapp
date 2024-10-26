@@ -1,19 +1,13 @@
 import { useEffect, useRef, useState } from "react";
-import { Navigate, Route, Routes } from "react-router-dom";
-import {
-  getContacts,
-  saveContact,
-  updateContact,
-  updatePhoto,
-} from "./api/ContactService";
-
-import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import Contact from "./components/Contact";
-import ContactList from "./components/ContactList";
 import Header from "./components/Header";
+import ContactList from "./components/ContactList";
+import { getContacts, saveContact, updatePhoto } from "./api/ContactService";
+import { Routes, Route, Navigate } from "react-router-dom";
 import ContactDetail from "./components/ContactDetail";
-import { toastError, toastSuccess } from "./api/ToastService";
+import { toastError } from "./api/ToastService";
+import { ToastContainer } from "react-toastify";
+
 function App() {
   const modalRef = useRef();
   const fileRef = useRef();
@@ -40,12 +34,6 @@ function App() {
       toastError(error.message);
     }
   };
-  useEffect(() => {
-    getAllContacts();
-  }, []);
-
-  const toggleModal = (show) =>
-    show ? modalRef.current.showModal() : modalRef.current.close();
 
   const onChange = (event) => {
     setValues({ ...values, [event.target.name]: event.target.value });
@@ -59,12 +47,10 @@ function App() {
       formData.append("file", file, file.name);
       formData.append("id", data.id);
       const { data: photoUrl } = await updatePhoto(formData);
-      console.log("Photo updation", photoUrl);
-      modalRef.current.close();
+      toggleModal(false);
       setFile(undefined);
       fileRef.current.value = null;
       setValues({
-        id: "",
         name: "",
         email: "",
         phone: "",
@@ -74,15 +60,16 @@ function App() {
       });
       getAllContacts();
     } catch (error) {
-      console.log(error.response);
+      console.log(error);
+      toastError(error.message);
     }
   };
 
   const updateContact = async (contact) => {
     try {
       const { data } = await saveContact(contact);
-      console.log("Data Update", data);
-      toastSuccess("Contact Updated!!");
+      getAllContacts();
+      console.log(data);
     } catch (error) {
       console.log(error);
       toastError(error.message);
@@ -92,14 +79,18 @@ function App() {
   const updateImage = async (formData) => {
     try {
       const { data: photoUrl } = await updatePhoto(formData);
-      console.log("Photo updation", photoUrl);
-
-      toastSuccess("Photo Updated!!");
     } catch (error) {
       console.log(error);
       toastError(error.message);
     }
   };
+
+  const toggleModal = (show) =>
+    show ? modalRef.current.showModal() : modalRef.current.close();
+
+  useEffect(() => {
+    getAllContacts();
+  }, []);
 
   return (
     <>
@@ -122,7 +113,6 @@ function App() {
               path="/contacts/:id"
               element={
                 <ContactDetail
-                  data={data}
                   updateContact={updateContact}
                   updateImage={updateImage}
                 />
@@ -132,6 +122,7 @@ function App() {
         </div>
       </main>
 
+      {/* Modal */}
       <dialog ref={modalRef} className="modal" id="modal">
         <div className="modal__header">
           <h3>New Contact</h3>

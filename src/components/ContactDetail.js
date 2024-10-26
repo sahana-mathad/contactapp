@@ -1,6 +1,7 @@
-import React, { useEffect, useRef, useState } from "react";
-import { useParams, Link } from "react-router-dom";
-import { getContact, updatePhoto, updateContact } from "../api/ContactService";
+import React, { useState, useEffect, useRef } from "react";
+import { Link, useParams } from "react-router-dom";
+import { getContact } from "../api/ContactService";
+import { toastError, toastSuccess } from "../api/ToastService";
 
 const ContactDetail = ({ updateContact, updateImage }) => {
   const inputRef = useRef();
@@ -21,13 +22,19 @@ const ContactDetail = ({ updateContact, updateImage }) => {
     try {
       const { data } = await getContact(id);
       setContact(data);
-      console.log("Updateing the data", data);
+      console.log(data);
+      //toastSuccess('Contact retrieved');
     } catch (error) {
-      console.log(error.response);
+      console.log(error);
+      toastError(error.message);
     }
   };
 
-  const updatePhoto = async (file) => {
+  const selectImage = () => {
+    inputRef.current.click();
+  };
+
+  const udpatePhoto = async (file) => {
     try {
       const formData = new FormData();
       formData.append("file", file, file.name);
@@ -37,16 +44,13 @@ const ContactDetail = ({ updateContact, updateImage }) => {
         ...prev,
         photoUrl: `${prev.photoUrl}?updated_at=${new Date().getTime()}`,
       }));
-
-      console.log("Updateing the data", formData);
+      toastSuccess("Photo updated");
     } catch (error) {
-      console.log(error.response);
+      console.log(error);
+      toastError(error.message);
     }
   };
 
-  const selectImage = () => {
-    inputRef.current.click();
-  };
   const onChange = (event) => {
     setContact({ ...contact, [event.target.name]: event.target.value });
   };
@@ -55,6 +59,7 @@ const ContactDetail = ({ updateContact, updateImage }) => {
     event.preventDefault();
     await updateContact(contact);
     fetchContact(id);
+    toastSuccess("Contact Updated");
   };
 
   useEffect(() => {
@@ -70,13 +75,13 @@ const ContactDetail = ({ updateContact, updateImage }) => {
         <div className="profile__details">
           <img
             src={contact.photoUrl}
-            alt={`profile photo URL of ${contact.name}`}
+            alt={`Profile photo of ${contact.name}`}
           />
           <div className="profile__metadata">
             <p className="profile__name">{contact.name}</p>
-            <p className="profile__muted">JPG, GIF, or PNG, Max size of 10MG</p>
+            <p className="profile__muted">JPG, GIF, or PNG. Max size of 10MG</p>
             <button onClick={selectImage} className="btn">
-              <i className="bi bi-cloud-upload"></i>Change Photo
+              <i className="bi bi-cloud-upload"></i> Change Photo
             </button>
           </div>
         </div>
@@ -160,11 +165,12 @@ const ContactDetail = ({ updateContact, updateImage }) => {
           </div>
         </div>
       </div>
+
       <form style={{ display: "none" }}>
         <input
           type="file"
           ref={inputRef}
-          onChange={(event) => updatePhoto(event.target.files[0])}
+          onChange={(event) => udpatePhoto(event.target.files[0])}
           name="file"
           accept="image/*"
         />
