@@ -36,42 +36,83 @@ function App() {
 		getAllContacts();
 	}, []);
 
-  const toggleModal = (show) => { show ? modalRef.current.showModal() : modalRef.current.close();}
-  
+ const toggleModal = show => show ? modalRef.current.showModal() : modalRef.current.close();  
+
+//  (function toggleModal(show){
+//         return show ? modalRef.current.showModal() : modalRef.current.close()
+//  })();
+ 
   const onChange = (event) => {
     setValues({...values,[event.target.name]: event.target.value});
   }
 
-  const handleNewContact = async (event) =>{
-    event.preventDefault();
-    try{
-      const {data} = await saveContact(values);
-      //
-      const formData =  new FormData();
-      formData.append('file',file);
-      // console.log("from Form while user selects",file);
-      formData.append('id',data.id);
-      const {data:photoUrl} = await updatePhoto(formData);
-       console.log(photoUrl);
-      toggleModal(false);
-      setFile(undefined);
-      fileRef.current.value=null;
-      setValues({
-    name:'',
-    email:'',
-    phone:'',
-    address:'',
-    title:'',
-    status:'',
+  // const handleNewContact =  (event) => {
+  //   event.preventDefault();
+  //   saveContact(values)
+  //   .then((data)=>{
+  //     const formData = new FormData();
+  //     formData.append('file', file,file.name);
+  //     formData.append('id', data.id);
+      
+  //     return updatePhoto(formData);
+  //   })
+  //   .then((response) =>{
+  //     if(response&& response.data){
+  //       const {data:photoUrl}=response;
+  //     toggleModal(false);
+  //     setFile(undefined);
+  //     console.log("derefence",file);
+  //     fileRef.current.value = null;
+  //     setValues({
+  //       name: '',
+  //       email: '',
+  //       phone: '',
+  //       address: '',
+  //       title: '',
+  //       status: '',
+  //     });
+  //     getAllContacts();
+  //   } else{
+  //     console.log("no data",response);
+  //   }
+  //   }).catch((error) => {
+  //     console.log(error);
+  //     // toastError(error.message);
+  //   });
+  // }
+    
 
+  const handleNewContact = async (event) => {
+    event.preventDefault();
+    try {
+      const { data } = await saveContact(values);
+      const formData = new FormData();
+      formData.append('file', file, file.name);
+      formData.append('id', data.id);
+      const { data: photoUrl } = await updatePhoto(formData);
+      console.log("Photo updation",photoUrl);
+      // resetValues();
+      // toggleModal(false);
+      modalRef.current.close()
+      setFile(undefined);
+      fileRef.current.value = null;
+      setValues({
+        name: '',
+        email: '',
+        phone: '',
+        address: '',
+        title: '',
+        status: '',
       })
       getAllContacts();
-
-    }catch(error){
-      console.log(error);
+    } catch (error) {
+      console.log(error.response);
+     // toastError(error.message);
     }
+  };
 
-  }
+      
+ 
 
 
 
@@ -127,7 +168,7 @@ function App() {
               </div>
             </div>
             <div className="form_footer">
-              <button onClick={() => toggleModal(false)} type='button' className="btn btn-danger">Cancel</button>
+              <button onClick={()=>toggleModal(false)} type='button' className="btn btn-danger">Cancel</button>
               <button type='submit' className="btn">Save</button>
             </div>
           </form>
